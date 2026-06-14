@@ -4,7 +4,7 @@ import re
 import json
 import csv
 import argparse
-from collections import defaultdict
+import random
 
 def strip_comments_and_javadoc(code: str) -> str:
     """
@@ -24,7 +24,7 @@ def strip_comments_and_javadoc(code: str) -> str:
 def simplify_json_keys(nested_json: dict) -> dict:
     """
     Simplifies fully qualified class names (FQNs) to simple class names
-    to reduce token size.
+    to reduce token size. E.g. "org.apache...NumberUtils" -> "NumberUtils"
     """
     if not nested_json or not isinstance(nested_json, dict):
         return {}
@@ -119,71 +119,6 @@ def preprocess_row(row: dict) -> dict:
         
     return row
 
-def perform_group_split(records: list):
-    """
-    Groups records by repo_url and distributes them to train/val/test splits
-    (70% / 15% / 15%) in a stratified manner to prevent data leakage.
-    """
-    # Group records by repo_url
-    repo_groups = defaultdict(list)
-    for r in records:
-        repo_groups[r.get("repo_url", "unknown")].append(r)
-        
-    # Sort repos by total size descending
-    sorted_repos = sorted(repo_groups.items(), key=lambda x: len(x[1]), reverse=True)
-    
-    train_records = []
-    val_records = []
-    test_records = []
-    
-    target_train_ratio = 0.70
-    target_val_ratio = 0.15
-    target_test_ratio = 0.15
-    
-    total_samples = len(records)
-    
-    # Greedy allocation of groups
-    for repo, group in sorted_repos:
-        curr_total = len(train_records) + len(val_records) + len(test_records)
-        if curr_total == 0:
-            train_records.extend(group)
-            continue
-            
-        train_p = len(train_records) / total_samples
-        val_p = len(val_records) / total_samples
-        test_p = len(test_records) / total_samples
-        
-        # Calculate deficits relative to targets
-        train_deficit = target_train_ratio - train_p
-        val_deficit = target_val_ratio - val_p
-        test_deficit = target_test_ratio - test_p
-        
-        # Allocate to split with largest deficit
-        max_deficit = max(train_deficit, val_deficit, test_deficit)
-        if max_deficit == train_deficit:
-            train_records.extend(group)
-        elif max_deficit == val_deficit:
-            val_records.extend(group)
-        else:
-            test_records.extend(group)
-            
-    print(f"\n--- Group-Based Split Statistics ---")
-    print(f"Total Rows: {total_samples}")
-    print(f"  - Train Split: {len(train_records)} rows ({len(train_records)/total_samples*100:.2f}%)")
-    print(f"  - Val Split:   {len(val_records)} rows ({len(val_records)/total_samples*100:.2f}%)")
-    print(f"  - Test Split:  {len(test_records)} rows ({len(test_records)/total_samples*100:.2f}%)")
-    
-    # Assert no overlaps
-    train_ids = {r["id"] for r in train_records}
-    val_ids = {r["id"] for r in val_records}
-    test_ids = {r["id"] for r in test_records}
-    assert len(train_ids & val_ids) == 0, "Overlap found between train and val"
-    assert len(train_ids & test_ids) == 0, "Overlap found between train and test"
-    assert len(val_ids & test_ids) == 0, "Overlap found between val and test"
-    print("Verification complete: No data leakage (overlap) between train/val/test splits.")
-    
-    return train_records, val_records, test_records
-
 def export_to_csv(records: list, output_csv_path: str):
     """
     Saves records back to CSV format, stringifying nested JSON fields.
@@ -210,13 +145,13 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     default_input = os.path.abspath(os.path.join(script_dir, "..", "data-extraction-pipeline", "context_augmented_dataset.jsonl"))
     
-    parser = argparse.ArgumentParser(description="Dataset Preprocessor for LLM-based classification")
+    parser = argparse.ArgumentParser(description="Dataset Preprocessor to generate a class-balanced dataset")
     parser.add_argument("--input", "-i", default=default_input, help="Path to input context_augmented_dataset.jsonl")
     parser.add_argument("--output-dir", "-o", default=script_dir, help="Directory to save output files")
-    parser.add_argument("--split", "-s", action="store_true", help="Generate train/val/test stratified splits")
+    parser.add_argument("--seed", "-s", type=int, default=42, help="Random seed for reproducible balancing")
     args = parser.parse_args()
     
-    print("=== Data Preprocessing Pipeline ===")
+    print("=== Data Preprocessing & Balancing Pipeline ===")
     print(f"Reading input JSONL: {args.input}")
     if not os.path.exists(args.input):
         print(f"Error: Input file does not exist at {args.input}. Please run the extraction pipeline merger first.")
@@ -252,36 +187,40 @@ def main():
             
     print(f"Loaded and preprocessed {len(records)} records (filtered out {filtered_count} incomplete records).")
     
-    # Save full cleaned dataset
+    # Balancing classes via reproducible downsampling
+    random.seed(args.seed)
+    
+    flaky_records = [r for r in records if int(r.get("isFlaky", 0)) == 1]
+    non_flaky_records = [r for r in records if int(r.get("isFlaky", 0)) == 0]
+    
+    m = min(len(flaky_records), len(non_flaky_records))
+    print(f"Balancing classes: minority class size is {m} (flaky={len(flaky_records)}, non-flaky={len(non_flaky_records)}).")
+    
+    if len(flaky_records) > len(non_flaky_records):
+        sampled_flaky = random.sample(flaky_records, m)
+        balanced_records = sampled_flaky + non_flaky_records
+    else:
+        sampled_non_flaky = random.sample(non_flaky_records, m)
+        balanced_records = flaky_records + sampled_non_flaky
+        
+    # Re-sort by original id to preserve order
+    balanced_records.sort(key=lambda x: x["id"])
+    records = balanced_records
+    print(f"Balanced dataset contains {len(records)} records ({m} flaky, {m} non-flaky).")
+    
+    # Save full cleaned and balanced dataset
     clean_jsonl = os.path.join(args.output_dir, "preprocessed_dataset.jsonl")
     clean_csv = os.path.join(args.output_dir, "preprocessed_dataset.csv")
     
-    print(f"Writing full cleaned dataset to: {clean_jsonl}")
+    print(f"Writing balanced JSONL to: {clean_jsonl}")
     with open(clean_jsonl, "w", encoding="utf-8") as f:
         for row in records:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             
-    print(f"Exporting full cleaned CSV to: {clean_csv}")
+    print(f"Exporting balanced CSV to: {clean_csv}")
     export_to_csv(records, clean_csv)
     
-    # Perform splitting if requested
-    if args.split:
-        train, val, test = perform_group_split(records)
-        
-        # Save JSONLs
-        for name, split_records in [("train", train), ("val", val), ("test", test)]:
-            jsonl_out = os.path.join(args.output_dir, f"{name}.jsonl")
-            csv_out = os.path.join(args.output_dir, f"{name}.csv")
-            
-            print(f"Saving split [{name}] to {jsonl_out}")
-            with open(jsonl_out, "w", encoding="utf-8") as f:
-                for row in split_records:
-                    f.write(json.dumps(row, ensure_ascii=False) + "\n")
-            
-            print(f"Exporting split [{name}] CSV to {csv_out}")
-            export_to_csv(split_records, csv_out)
-            
-    print("Preprocessing completed successfully.")
+    print("Preprocessing and class-balancing completed successfully.")
 
 if __name__ == "__main__":
     main()
