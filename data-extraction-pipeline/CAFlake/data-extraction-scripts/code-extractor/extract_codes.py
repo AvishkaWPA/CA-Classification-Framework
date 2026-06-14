@@ -336,7 +336,7 @@ def run_code_extraction(limit=None, force=False):
 
             row.update({
                 "test_code": flaky_code if flaky_code else "",
-                "helper_methods_json": json.dumps(flaky_helpers, ensure_ascii=False) if flaky_helpers else ""
+                "helper_methods_json": flaky_helpers if flaky_helpers else {}
             })
 
             # Clean out any extra columns

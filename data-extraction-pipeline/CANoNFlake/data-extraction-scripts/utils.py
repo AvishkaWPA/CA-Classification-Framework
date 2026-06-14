@@ -10,30 +10,38 @@ def get_d4j_root():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(script_dir, "..", ".."))
 
-def get_common_csv_path():
-    # Returns the absolute path to the shared non-flaky dataset CSV.
+import json
+
+def get_common_jsonl_path():
+    # Returns the absolute path to the shared non-flaky dataset JSONL.
     d4j_root = get_d4j_root()
-    return os.path.join(d4j_root, "CANonFlake", "non_flaky_dataset.csv")
+    return os.path.join(d4j_root, "CANonFlake", "non_flaky_dataset.jsonl")
 
 def read_common_dataset():
-    # Reads the shared CSV dataset, returning a list of dicts.
+    # Reads the shared JSONL dataset, returning a list of dicts.
     # If the file does not exist, returns an empty list.
-    csv_path = get_common_csv_path()
-    if not os.path.exists(csv_path):
+    jsonl_path = get_common_jsonl_path()
+    if not os.path.exists(jsonl_path):
         return []
-    with open(csv_path, mode="r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+    rows = []
+    with open(jsonl_path, mode="r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
 
-def write_common_dataset(rows, headers):
-    # Writes the list of dicts back to the shared CSV dataset using the specified headers.
-    csv_path = get_common_csv_path()
-    os.makedirs(os.path.dirname(csv_path), exist_ok=True)
-    with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(rows)
-    print(f"Updated non-flaky dataset CSV at: {csv_path}")
+def write_common_dataset(rows, headers=None):
+    # Writes the list of dicts back to the shared JSONL dataset.
+    jsonl_path = get_common_jsonl_path()
+    os.makedirs(os.path.dirname(jsonl_path), exist_ok=True)
+    with open(jsonl_path, mode="w", encoding="utf-8") as f:
+        for row in rows:
+            if headers:
+                ordered_row = {col: row.get(col, "") for col in headers}
+            else:
+                ordered_row = row
+            f.write(json.dumps(ordered_row, ensure_ascii=False) + '\n')
+    print(f"Updated non-flaky dataset JSONL at: {jsonl_path}")
 
 def parse_trigger_file(trigger_path):
     # Parses a Defects4J trigger_tests/[N] file.

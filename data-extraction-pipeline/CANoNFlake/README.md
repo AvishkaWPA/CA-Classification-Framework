@@ -147,14 +147,6 @@ python data-extraction-scripts/logs-extractor/extract_logs.py
 python data-extraction-scripts/cut-extractor/extract_cut.py
 ```
 
-### 3. Post-Extraction Cleaning & Format Conversion
-Once extraction stages are complete:
-1.  **Filter incomplete cases:** Clean rows with unresolvable SVN/build dependencies (missing CUT values) using cleaning logic (filtering where `code_under_test_json` is empty) and re-sequencing the `id` column.
-2.  **Generate JSON Lines format:** Run the format converter to produce the nested `.jsonl` version of the dataset:
-    ```powershell
-    python data-extraction-scripts/converters/convert_csv_to_jsonl.py
-    ```
-
 
 ---
 
@@ -176,8 +168,7 @@ CANonFlake/
     │   └── extract_logs.py                ← Stage 3
     ├── cut-extractor/
     │   └── extract_cut.py                 ← Stage 4
-    └── converters/                        ← Format converters (CSV ⇄ JSONL)
-        ├── convert_csv_to_jsonl.py
+    └── converters/                        ← Format converters (JSONL ⇄ CSV)
         └── convert_jsonl_to_csv.py
 ```
 

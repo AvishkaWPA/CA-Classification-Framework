@@ -504,7 +504,7 @@ def run_code_extraction(limit=None, force=False):
             test_code, helpers = extract_from_test_patch(project, bug_id, test_method)
             if test_code:
                 row["test_code"] = test_code
-                row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+                row["helper_methods_json"] = helpers if helpers else {}
                 processed += 1
                 print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id} [patch]: "
                       f"{test_class}::{test_method} [{len(test_code)} chars, {len(helpers)} helpers]")
@@ -527,7 +527,7 @@ def run_code_extraction(limit=None, force=False):
             test_code, helpers = extract_from_test_patch(project, bug_id, test_method)
             if test_code:
                 row["test_code"] = test_code
-                row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+                row["helper_methods_json"] = helpers if helpers else {}
                 processed += 1
                 print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id} [patch]: "
                       f"{test_class}::{test_method} [{len(test_code)} chars, {len(helpers)} helpers]")
@@ -543,7 +543,7 @@ def run_code_extraction(limit=None, force=False):
 
         # Update row
         row["test_code"] = test_code
-        row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+        row["helper_methods_json"] = helpers if helpers else {}
         processed += 1
 
         print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id}: {test_class}::{test_method}"

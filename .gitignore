@@ -1,0 +1,23 @@
+# Python bytecode and cache
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Temporary and log files
+*.tmp
+*.log

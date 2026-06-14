@@ -10,8 +10,8 @@ PROJECTS_DIR = os.path.join(D4J_ROOT, "framework", "projects")
 # Structure: project_repos/commons-lang.git, commons-math.git, etc.
 REPOS_DIR = os.path.join(D4J_ROOT, "project_repos")
 
-# Path to the output shared CSV dataset
-COMMON_CSV_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "non_flaky_dataset.csv"))
+# Path to the output shared JSONL dataset
+COMMON_JSONL_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "non_flaky_dataset.jsonl"))
 
 # Known GitHub repository URLs for all 17 Defects4J projects
 GITHUB_URLS = {

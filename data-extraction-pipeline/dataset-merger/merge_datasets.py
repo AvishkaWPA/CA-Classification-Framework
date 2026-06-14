@@ -1,87 +1,103 @@
 import os
-import pandas as pd
 import json
+import csv
 
 def main():
-    # Define paths relative to this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     pipeline_dir = os.path.dirname(script_dir) # data-extraction-pipeline root
     
-    nonflaky_path = os.path.join(pipeline_dir, "CANoNFlake", "non_flaky_dataset.csv")
-    flaky_path = os.path.join(pipeline_dir, "CAFlake", "context_enriched_dataset.csv")
-    output_path = os.path.join(pipeline_dir, "context_augmented_dataset.csv")
+    nonflaky_jsonl = os.path.join(pipeline_dir, "CANoNFlake", "non_flaky_dataset.jsonl")
+    flaky_jsonl = os.path.join(pipeline_dir, "CAFlake", "context_enriched_dataset.jsonl")
+    output_jsonl = os.path.join(pipeline_dir, "context_augmented_dataset.jsonl")
+    output_csv = os.path.join(pipeline_dir, "context_augmented_dataset.csv")
     
-    print("=== Dataset Merger ===")
-    print(f"Reading non-flaky dataset from: {nonflaky_path}")
-    if not os.path.exists(nonflaky_path):
+    print("=== Dataset Merger (JSONL-First) ===")
+    print(f"Reading non-flaky JSONL from: {nonflaky_jsonl}")
+    if not os.path.exists(nonflaky_jsonl):
         print(f"Error: Non-flaky dataset does not exist. Please run the CANoNFlake pipeline first.")
         return
         
-    print(f"Reading flaky dataset from: {flaky_path}")
-    if not os.path.exists(flaky_path):
+    print(f"Reading flaky JSONL from: {flaky_jsonl}")
+    if not os.path.exists(flaky_jsonl):
         print(f"Error: Flaky dataset does not exist. Please run the CAFlake pipeline first.")
         return
         
-    # Read datasets
-    nonflaky_df = pd.read_csv(nonflaky_path, low_memory=False)
-    flaky_df = pd.read_csv(flaky_path, low_memory=False)
+    records = []
+    flaky_count = 0
+    nonflaky_count = 0
     
-    print(f"Loaded {len(nonflaky_df)} non-flaky samples.")
-    print(f"Loaded {len(flaky_df)} flaky samples.")
+    # Read CAFlake (flaky)
+    with open(flaky_jsonl, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                row = json.loads(line)
+                row["id"] = len(records) + 1
+                records.append(row)
+                flaky_count += 1
+                
+    # Read CANoNFlake (non-flaky)
+    with open(nonflaky_jsonl, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                row = json.loads(line)
+                row["id"] = len(records) + 1
+                records.append(row)
+                nonflaky_count += 1
+                
+    print(f"Loaded {nonflaky_count} non-flaky samples.")
+    print(f"Loaded {flaky_count} flaky samples.")
     
-    # Verify columns match
-    nonflaky_cols = list(nonflaky_df.columns)
-    flaky_cols = list(flaky_df.columns)
-    if nonflaky_cols != flaky_cols:
-        print("Warning: Columns do not match exactly in order or names.")
-        print(f" - Non-flaky columns: {nonflaky_cols}")
-        print(f" - Flaky columns: {flaky_cols}")
-        
-    # Combine datasets
-    combined = pd.concat([flaky_df, nonflaky_df], ignore_index=True)
-    
-    # Re-sequence id to be unique and continuous from 1 to N
-    combined["id"] = range(1, len(combined) + 1)
-    
-    # Save the output CSV
-    print(f"Writing combined dataset to: {output_path}")
-    combined.to_csv(output_path, index=False)
-    
+    # Save output JSONL
+    print(f"Writing merged JSONL to: {output_jsonl}")
+    with open(output_jsonl, "w", encoding="utf-8") as f:
+        for row in records:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            
     # Print statistics
     print("\n--- Merging Statistics ---")
-    print(f"Total combined rows: {len(combined)}")
-    flaky_count = (combined["isFlaky"] == 1).sum()
-    nonflaky_count = (combined["isFlaky"] == 0).sum()
-    print(f" - Flaky samples (isFlaky=1): {flaky_count} ({flaky_count / len(combined) * 100:.2f}%)")
-    print(f" - Non-flaky samples (isFlaky=0): {nonflaky_count} ({nonflaky_count / len(combined) * 100:.2f}%)")
+    print(f"Total combined rows: {len(records)}")
+    print(f" - Flaky samples (isFlaky=1): {flaky_count} ({flaky_count / len(records) * 100:.2f}%)")
+    print(f" - Non-flaky samples (isFlaky=0): {nonflaky_count} ({nonflaky_count / len(records) * 100:.2f}%)")
     
-    # Output file paths for jsonl if they exist
-    nonflaky_jsonl = nonflaky_path.rsplit('.', 1)[0] + ".jsonl"
-    flaky_jsonl = flaky_path.rsplit('.', 1)[0] + ".jsonl"
-    output_jsonl = output_path.rsplit('.', 1)[0] + ".jsonl"
+    # Export to CSV
+    print(f"\nExporting to CSV at: {output_csv}")
     
-    if os.path.exists(nonflaky_jsonl) and os.path.exists(flaky_jsonl):
-        print(f"\nFound JSONL formats. Creating combined JSONL at: {output_jsonl}")
-        # Merge JSONLs
-        records_count = 0
-        with open(output_jsonl, "w", encoding="utf-8") as f_out:
-            # Read flaky jsonl
-            with open(flaky_jsonl, "r", encoding="utf-8") as f_flaky:
-                for line in f_flaky:
-                    if line.strip():
-                        row = json.loads(line)
-                        row["id"] = str(records_count + 1)
-                        f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
-                        records_count += 1
-            # Read non-flaky jsonl
-            with open(nonflaky_jsonl, "r", encoding="utf-8") as f_nonflaky:
-                for line in f_nonflaky:
-                    if line.strip():
-                        row = json.loads(line)
-                        row["id"] = str(records_count + 1)
-                        f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
-                        records_count += 1
-        print(f"Successfully merged {records_count} records to JSONL.")
+    # 12-column headers
+    headers = [
+        "id",
+        "test_id",
+        "isFlaky",
+        "issue_category",
+        "repo_url",
+        "issue_commit",
+        "flaky_commit",
+        "fixed_commit",
+        "test_code",
+        "helper_methods_json",
+        "failure_log",
+        "code_under_test_json"
+    ]
+    
+    with open(output_csv, "w", newline="", encoding="utf-8") as f_csv:
+        writer = csv.DictWriter(f_csv, fieldnames=headers)
+        writer.writeheader()
+        
+        for row in records:
+            # Copy row to avoid modifying original records list
+            csv_row = {}
+            for col in headers:
+                val = row.get(col, "")
+                # Convert helper methods and code under test back to stringified JSON for CSV
+                if col in ("helper_methods_json", "code_under_test_json") and isinstance(val, (dict, list)):
+                    if not val:
+                        csv_row[col] = ""
+                    else:
+                        csv_row[col] = json.dumps(val, ensure_ascii=False)
+                else:
+                    csv_row[col] = val
+            writer.writerow(csv_row)
+            
+    print("Export complete.")
 
 if __name__ == "__main__":
     main()

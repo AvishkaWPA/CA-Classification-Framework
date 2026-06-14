@@ -9,11 +9,11 @@ csv.field_size_limit(2147483647)
 # Append parent directory for config import
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    from config import COMMON_CSV_PATH
+    from config import COMMON_JSONL_PATH
 except ImportError:
     # Fallback to local path calculation if config cannot be imported
     WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
-    COMMON_CSV_PATH = os.path.join(WORKSPACE_ROOT, "CANoNFlake", "non_flaky_dataset.csv")
+    COMMON_JSONL_PATH = os.path.join(WORKSPACE_ROOT, "CANoNFlake", "non_flaky_dataset.jsonl")
 
 CUT_HEADERS = [
     "id",
@@ -63,6 +63,6 @@ def convert_jsonl_to_csv(jsonl_path, csv_path):
     print(f"Successfully exported {records_count} records to CSV at: {csv_path}")
 
 if __name__ == "__main__":
-    csv_path = COMMON_CSV_PATH
-    jsonl_path = csv_path.rsplit('.', 1)[0] + ".jsonl"
+    jsonl_path = COMMON_JSONL_PATH
+    csv_path = jsonl_path.rsplit('.', 1)[0] + ".csv"
     convert_jsonl_to_csv(jsonl_path, csv_path)

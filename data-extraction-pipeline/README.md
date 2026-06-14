@@ -104,9 +104,6 @@ python data-extraction-pipeline/CANoNFlake/data-extraction-scripts/logs-extracto
 
 # Run Stage 4: Code under test extraction
 python data-extraction-pipeline/CANoNFlake/data-extraction-scripts/cut-extractor/extract_cut.py
-
-# Step 5: Clean rows lacking Code Under Test (missing CUT values) and convert CSV to JSONL format
-python data-extraction-pipeline/CANoNFlake/data-extraction-scripts/converters/convert_csv_to_jsonl.py
 ```
 
 ### 3. Merge Datasets

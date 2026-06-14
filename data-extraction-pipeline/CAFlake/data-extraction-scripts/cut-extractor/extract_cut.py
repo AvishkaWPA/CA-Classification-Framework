@@ -578,12 +578,17 @@ def collect_static_call_methods(flaky_test_code, flaky_helpers_json, zip_ref, te
     if flaky_test_code:
         bodies.append(flaky_test_code)
     if flaky_helpers_json:
-        try:
-            helpers = json.loads(flaky_helpers_json)
+        if isinstance(flaky_helpers_json, str):
+            try:
+                helpers = json.loads(flaky_helpers_json)
+            except Exception:
+                helpers = {}
+        else:
+            helpers = flaky_helpers_json
+            
+        if isinstance(helpers, dict):
             for body in helpers.values():
                 bodies.append(body)
-        except Exception:
-            pass
             
     if not bodies:
         return targets
@@ -838,7 +843,7 @@ def process_single_row(row, test_configs, zip_cache):
                     break
             
     # Save results
-    row["code_under_test_json"] = json.dumps(cut_dict, ensure_ascii=False) if cut_dict else ""
+    row["code_under_test_json"] = cut_dict if cut_dict else {}
 
 # Main runner
 def run_cut_extraction(limit=None, force=False):
@@ -860,9 +865,13 @@ def run_cut_extraction(limit=None, force=False):
             if not config:
                 continue
                 
-            has_cut = row.get("code_under_test_json", "").strip()
-            if has_cut and has_cut != "{}" and not force:
-                continue
+            has_cut = row.get("code_under_test_json")
+            if has_cut:
+                if isinstance(has_cut, dict):
+                    if has_cut and not force:
+                        continue
+                elif isinstance(has_cut, str) and has_cut.strip() and has_cut.strip() != "{}" and not force:
+                    continue
                 
             if limit is not None and processed_count >= limit:
                 break

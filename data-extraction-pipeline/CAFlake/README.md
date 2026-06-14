@@ -135,12 +135,6 @@ python data-extraction-scripts/logs-extractor/extract_logs.py
 python data-extraction-scripts/cut-extractor/extract_cut.py
 ```
 
-### 3. Format Conversion
-Generate the JSON Lines format to obtain nested structures:
-```powershell
-python data-extraction-scripts/converters/convert_csv_to_jsonl.py
-```
-
 ---
 
 ## Directory Structure
@@ -161,8 +155,7 @@ CAFlake/
     │   └── extract_logs.py                ← Stage 3
     ├── cut-extractor/
     │   └── extract_cut.py                 ← Stage 4
-    └── converters/                        ← Format converters (CSV ⇄ JSONL)
-        ├── convert_csv_to_jsonl.py
+    └── converters/                        ← Format converters (JSONL ⇄ CSV)
         └── convert_jsonl_to_csv.py
 ```
 
