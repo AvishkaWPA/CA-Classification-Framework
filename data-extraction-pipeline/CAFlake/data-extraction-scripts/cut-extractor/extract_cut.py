@@ -20,14 +20,16 @@ from utils import (
 CUT_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json"
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json"
 ]
 
 # Helper to bypass Windows 260-character path limit
@@ -708,13 +710,13 @@ def process_single_row(row, test_configs, zip_cache):
         target_methods.update(targets_xml)
         
     # Phase 2: Try Failure Stack Trace Parsing
-    failure_log = row.get("flaky_failure_log", "")
+    failure_log = row.get("failure_log", "")
     targets_stack = collect_stack_trace_methods(failure_log, class_fqn)
     target_methods.update(targets_stack)
     
     # Phase 3: Try Static Invocations (Fallback / Enrichment)
-    test_code = row.get("flaky_test_code", "")
-    helpers_json = row.get("flaky_helper_methods_json", "")
+    test_code = row.get("test_code", "")
+    helpers_json = row.get("helper_methods_json", "")
     targets_static = collect_static_call_methods(test_code, helpers_json, zip_ref, class_fqn)
     target_methods.update(targets_static)
     
@@ -836,7 +838,7 @@ def process_single_row(row, test_configs, zip_cache):
                     break
             
     # Save results
-    row["flaky_code_under_test_json"] = json.dumps(cut_dict, ensure_ascii=False) if cut_dict else ""
+    row["code_under_test_json"] = json.dumps(cut_dict, ensure_ascii=False) if cut_dict else ""
 
 # Main runner
 def run_cut_extraction(limit=None, force=False):
@@ -858,7 +860,7 @@ def run_cut_extraction(limit=None, force=False):
             if not config:
                 continue
                 
-            has_cut = row.get("flaky_code_under_test_json", "").strip()
+            has_cut = row.get("code_under_test_json", "").strip()
             if has_cut and has_cut != "{}" and not force:
                 continue
                 

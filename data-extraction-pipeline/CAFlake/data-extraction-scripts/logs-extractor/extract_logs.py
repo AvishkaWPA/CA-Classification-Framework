@@ -18,13 +18,15 @@ from utils import (
 LOGS_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log"
+    "test_code",
+    "helper_methods_json",
+    "failure_log"
 ]
 
 # Helper to bypass Windows 260-character path limit
@@ -202,7 +204,7 @@ def run_logs_extraction(limit=None, force=False):
         if not config:
             continue
             
-        has_log = row.get("flaky_failure_log")
+        has_log = row.get("failure_log")
         if has_log and not force:
             continue
             
@@ -287,7 +289,7 @@ def run_logs_extraction(limit=None, force=False):
             log_blocks.append(f"Failed Rounds: {count}/{total_rounds}\n{raw_trace}")
             
         final_log = "\n\n".join(log_blocks) if log_blocks else ""
-        row["flaky_failure_log"] = final_log
+        row["failure_log"] = final_log
         
         processed_count += 1
         

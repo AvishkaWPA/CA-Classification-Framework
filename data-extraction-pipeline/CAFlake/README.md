@@ -20,15 +20,17 @@ The final `context_enriched_dataset.csv` uses the exact same column schema as `C
 | Column | Type | Filled By | Description |
 |---|---|---|---|
 | `id` | int | Stage 1 | Sequential row number |
-| `test_id` | str | Stage 1 | Unique container identifier e.g., `fastjson97ee7b6test_for_issue5` |
-| `flaky_category` | str | Stage 1 | Category of flakiness: `Implementation Dependent`, `Order Dependent`, `Non-Idempotent`, `Time Dependent` |
+| `test_id` | str | Stage 1 | Unique Defects4J/ReproFlake test identifier |
+| `isFlaky` | int | Stage 1 | Binary classification label (`1` for flaky) |
+| `issue_category` | str | Stage 1 | Category of flakiness: `Implementation Dependent`, `Order Dependent`, `Non-Idempotent`, `Time Dependent` |
 | `repo_url` | str | Stage 1 | GitHub URL of the project |
-| `flaky_commit` | str | Stage 1 | Git SHA of the **buggy** (flaky) commit |
+| `issue_commit` | str | Stage 1 | Git SHA of the **buggy** (flaky) commit |
+| `flaky_commit` | str | Stage 1 | Duplicate/alias of `issue_commit` |
 | `fixed_commit` | str | Stage 1 | Git SHA of the **fixed** commit |
-| `flaky_test_code` | str | Stage 2 | Full source of the failing test method |
-| `flaky_helper_methods_json` | JSON str | Stage 2 | JSON map of helper methods called by the test |
-| `flaky_failure_log` | str | Stage 3 | Deduplicated stack trace / failure output from flaky execution runs |
-| `flaky_code_under_test_json` | JSON str | Stage 4 | JSON map of production methods covered and executed by the test |
+| `test_code` | str | Stage 2 | Full source of the failing test method |
+| `helper_methods_json` | JSON str | Stage 2 | JSON map of helper methods called by the test |
+| `failure_log` | str | Stage 3 | Deduplicated stack trace / failure output from flaky execution runs |
+| `code_under_test_json` | JSON str | Stage 4 | JSON map of production methods covered and executed by the test |
 
 ---
 
@@ -39,12 +41,12 @@ The dataset is built in **4 sequential stages**. Each stage reads `context_enric
 ```
 ReproFlake
 dataSource/reproFlake/
-├── test_config.csv          ─── Stage 1 ──▶ id, test_id, flaky_category,
-├── research-data/           ─── Stage 1 ──▶ repo_url, flaky_commit, fixed_commit
-├── result/[test_id]/        ─── Stage 3 ──▶ flaky_failure_log
+├── test_config.csv          ─── Stage 1 ──▶ id, test_id, isFlaky, issue_category,
+├── research-data/           ─── Stage 1 ──▶ repo_url, issue_commit, flaky_commit, fixed_commit
+├── result/[test_id]/        ─── Stage 3 ──▶ failure_log
 │   └── surefire-reports/
-└── data/[project].zip       ─── Stage 2 ──▶ flaky_test_code, flaky_helper_methods_json
-                             ─── Stage 4 ──▶ flaky_code_under_test_json
+└── data/[project].zip       ─── Stage 2 ──▶ test_code, helper_methods_json
+                             ─── Stage 4 ──▶ code_under_test_json
 ```
 
 ### Stage 1 — Metadata Extraction ✅ Complete
@@ -73,7 +75,7 @@ Locates test class files inside zipped project sources, parses out test method b
 python data-extraction-scripts/code-extractor/extract_codes.py
 ```
 
-**Output:** `flaky_test_code` and `flaky_helper_methods_json` filled.
+**Output:** `test_code` and `helper_methods_json` filled.
 
 ---
 
@@ -89,7 +91,7 @@ Scans execution rounds inside the surefire reports directories. It extracts the 
 python data-extraction-scripts/logs-extractor/extract_logs.py
 ```
 
-**Output:** `flaky_failure_log` filled.
+**Output:** `failure_log` filled.
 
 ---
 
@@ -105,7 +107,7 @@ Reads Jacoco dynamic coverage mappings to identify covered class candidates, loc
 python data-extraction-scripts/cut-extractor/extract_cut.py
 ```
 
-**Output:** `flaky_code_under_test_json` filled.
+**Output:** `code_under_test_json` filled.
 
 ---
 

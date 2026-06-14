@@ -7,6 +7,8 @@ This directory orchestrates the full data extraction pipeline for **CAFlake** an
 ```
 data-extraction-pipeline/
 ├── README.md                          ← This file
+├── context_augmented_dataset.csv      ← Combined CSV dataset
+├── context_augmented_dataset.jsonl    ← Combined JSONL dataset
 ├── dataSource/                        ← Central raw dataset folder (git-ignored)
 │   ├── defects4j/                     ← Place Defects4J repository content here
 │   └── reproFlake/                    ← Place ReproFlake data/result directories here
@@ -108,8 +110,8 @@ python data-extraction-pipeline/CANoNFlake/data-extraction-scripts/converters/co
 ```
 
 ### 3. Merge Datasets
-To combine the extracted datasets and output `binary_classification_dataset.csv` (and `.jsonl`):
+To combine the extracted datasets and output `context_augmented_dataset.csv` (and `.jsonl`):
 ```powershell
 python data-extraction-pipeline/dataset-merger/merge_datasets.py
 ```
-This merges the datasets, assigns target binary labels (`1` for flaky, `0` for non-flaky), and formats the final row identifiers.
+This merges the datasets, retains the target binary labels (`isFlaky` set to `1` for flaky, `0` for non-flaky), and formats the final row identifiers.

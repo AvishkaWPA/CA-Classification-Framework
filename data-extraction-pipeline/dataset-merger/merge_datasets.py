@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import json
 
 def main():
     # Define paths relative to this script
@@ -8,7 +9,7 @@ def main():
     
     nonflaky_path = os.path.join(pipeline_dir, "CANoNFlake", "non_flaky_dataset.csv")
     flaky_path = os.path.join(pipeline_dir, "CAFlake", "context_enriched_dataset.csv")
-    output_path = os.path.join(pipeline_dir, "binary_classification_dataset.csv")
+    output_path = os.path.join(pipeline_dir, "context_augmented_dataset.csv")
     
     print("=== Dataset Merger ===")
     print(f"Reading non-flaky dataset from: {nonflaky_path}")
@@ -39,9 +40,6 @@ def main():
     # Combine datasets
     combined = pd.concat([flaky_df, nonflaky_df], ignore_index=True)
     
-    # Set label: 1 for flaky (flaky_category != "Non-Flaky"), 0 for non-flaky
-    combined["label"] = (combined["flaky_category"] != "Non-Flaky").astype(int)
-    
     # Re-sequence id to be unique and continuous from 1 to N
     combined["id"] = range(1, len(combined) + 1)
     
@@ -52,10 +50,10 @@ def main():
     # Print statistics
     print("\n--- Merging Statistics ---")
     print(f"Total combined rows: {len(combined)}")
-    flaky_count = (combined["label"] == 1).sum()
-    nonflaky_count = (combined["label"] == 0).sum()
-    print(f" - Flaky samples (label=1): {flaky_count} ({flaky_count / len(combined) * 100:.2f}%)")
-    print(f" - Non-flaky samples (label=0): {nonflaky_count} ({nonflaky_count / len(combined) * 100:.2f}%)")
+    flaky_count = (combined["isFlaky"] == 1).sum()
+    nonflaky_count = (combined["isFlaky"] == 0).sum()
+    print(f" - Flaky samples (isFlaky=1): {flaky_count} ({flaky_count / len(combined) * 100:.2f}%)")
+    print(f" - Non-flaky samples (isFlaky=0): {nonflaky_count} ({nonflaky_count / len(combined) * 100:.2f}%)")
     
     # Output file paths for jsonl if they exist
     nonflaky_jsonl = nonflaky_path.rsplit('.', 1)[0] + ".jsonl"
@@ -71,9 +69,7 @@ def main():
             with open(flaky_jsonl, "r", encoding="utf-8") as f_flaky:
                 for line in f_flaky:
                     if line.strip():
-                        import json
                         row = json.loads(line)
-                        row["label"] = 1
                         row["id"] = str(records_count + 1)
                         f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
                         records_count += 1
@@ -81,13 +77,11 @@ def main():
             with open(nonflaky_jsonl, "r", encoding="utf-8") as f_nonflaky:
                 for line in f_nonflaky:
                     if line.strip():
-                        import json
                         row = json.loads(line)
-                        row["label"] = 0
                         row["id"] = str(records_count + 1)
                         f_out.write(json.dumps(row, ensure_ascii=False) + "\n")
                         records_count += 1
-        print(f"Successfully converted {records_count} records to JSONL.")
+        print(f"Successfully merged {records_count} records to JSONL.")
 
 if __name__ == "__main__":
     main()

@@ -19,12 +19,14 @@ from utils import (
 CODE_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json"
+    "test_code",
+    "helper_methods_json"
 ]
 
 def remove_comments_and_strings(code):
@@ -308,7 +310,7 @@ def run_code_extraction(limit=None, force=False):
             if not config:
                 continue
 
-            has_flaky_code = row.get("flaky_test_code")
+            has_flaky_code = row.get("test_code")
             if has_flaky_code and not force:
                 continue
 
@@ -333,14 +335,14 @@ def run_code_extraction(limit=None, force=False):
             flaky_code, flaky_helpers = get_test_and_helpers(zip_ref, class_fqn, method_name, "Flaky")
 
             row.update({
-                "flaky_test_code": flaky_code if flaky_code else "",
-                "flaky_helper_methods_json": json.dumps(flaky_helpers, ensure_ascii=False) if flaky_helpers else ""
+                "test_code": flaky_code if flaky_code else "",
+                "helper_methods_json": json.dumps(flaky_helpers, ensure_ascii=False) if flaky_helpers else ""
             })
 
             # Clean out any extra columns
             row.pop("fixed_test_code", None)
             row.pop("fixed_helper_methods_json", None)
-            row.pop("flaky_code_under_test_json", None)
+            row.pop("code_under_test_json", None)
 
             processed_count += 1
 

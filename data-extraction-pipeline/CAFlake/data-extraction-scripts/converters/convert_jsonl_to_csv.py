@@ -18,14 +18,16 @@ except ImportError:
 CUT_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json"
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json"
 ]
 
 def convert_jsonl_to_csv(jsonl_path, csv_path):
@@ -46,7 +48,7 @@ def convert_jsonl_to_csv(jsonl_path, csv_path):
                 row = json.loads(line)
                 
                 # Convert helper methods and code under test back to stringified JSON for CSV
-                for json_col in ("flaky_helper_methods_json", "flaky_code_under_test_json"):
+                for json_col in ("helper_methods_json", "code_under_test_json"):
                     val = row.get(json_col)
                     if isinstance(val, (dict, list)):
                         # If empty, write empty string to match format, else serialize

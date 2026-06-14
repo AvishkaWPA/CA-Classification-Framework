@@ -18,18 +18,20 @@ from utils import (
     parse_trigger_file,
 )
 
-# Stage 2 fills these columns (all 10 are preserved)
+# Stage 2 fills these columns (all 12 are preserved)
 CODE_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json",
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json",
 ]
 
 # Maps Defects4J project name → bare repo directory name inside project_repos/
@@ -466,7 +468,7 @@ def run_code_extraction(limit=None, force=False):
             break
 
         # Skip if already filled and not forcing
-        if row.get("flaky_test_code", "").strip() and not force:
+        if row.get("test_code", "").strip() and not force:
             continue
 
         test_id = row.get("test_id", "")
@@ -501,8 +503,8 @@ def run_code_extraction(limit=None, force=False):
             bug_id = parts[1]
             test_code, helpers = extract_from_test_patch(project, bug_id, test_method)
             if test_code:
-                row["flaky_test_code"] = test_code
-                row["flaky_helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+                row["test_code"] = test_code
+                row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
                 processed += 1
                 print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id} [patch]: "
                       f"{test_class}::{test_method} [{len(test_code)} chars, {len(helpers)} helpers]")
@@ -524,8 +526,8 @@ def run_code_extraction(limit=None, force=False):
             bug_id = parts[1]
             test_code, helpers = extract_from_test_patch(project, bug_id, test_method)
             if test_code:
-                row["flaky_test_code"] = test_code
-                row["flaky_helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+                row["test_code"] = test_code
+                row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
                 processed += 1
                 print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id} [patch]: "
                       f"{test_class}::{test_method} [{len(test_code)} chars, {len(helpers)} helpers]")
@@ -540,8 +542,8 @@ def run_code_extraction(limit=None, force=False):
         )
 
         # Update row
-        row["flaky_test_code"] = test_code
-        row["flaky_helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
+        row["test_code"] = test_code
+        row["helper_methods_json"] = json.dumps(helpers, ensure_ascii=False) if helpers else ""
         processed += 1
 
         print(f"  ({processed}{f'/{limit}' if limit else ''}) {test_id}: {test_class}::{test_method}"

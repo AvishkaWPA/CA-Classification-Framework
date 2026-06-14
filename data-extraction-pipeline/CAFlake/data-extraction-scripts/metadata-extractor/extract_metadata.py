@@ -18,8 +18,10 @@ from utils import (
 METADATA_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit"
 ]
@@ -73,8 +75,10 @@ def run_metadata_extraction(limit=None):
         row.update({
             "id": processed_count + 1,
             "test_id": test_id,
-            "flaky_category": full_category,
+            "isFlaky": 1,
+            "issue_category": full_category,
             "repo_url": meta["repo_url"],
+            "issue_commit": meta["flaky_commit"],
             "flaky_commit": meta["flaky_commit"],
             "fixed_commit": meta["fixed_commit"]
         })

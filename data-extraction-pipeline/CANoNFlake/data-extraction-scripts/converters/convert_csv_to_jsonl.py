@@ -30,7 +30,7 @@ def convert_csv_to_jsonl(csv_path, jsonl_path):
                 # Convert the flaky_helper_methods_json and flaky_code_under_test_json
                 # fields from stringified JSON back to raw JSON objects so the JSONL
                 # contains clean nested structures instead of escaped strings.
-                for json_col in ("flaky_helper_methods_json", "flaky_code_under_test_json"):
+                for json_col in ("helper_methods_json", "code_under_test_json"):
                     val = row.get(json_col, "").strip()
                     if val and val != "{}":
                         try:

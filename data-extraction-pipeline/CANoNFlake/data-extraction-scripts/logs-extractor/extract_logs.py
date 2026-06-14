@@ -13,18 +13,20 @@ from utils import (
     parse_trigger_file,
 )
 
-# Shared 10-column dataset schema
+# Shared 12-column dataset schema
 LOGS_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json",
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json",
 ]
 
 def run_logs_extraction(limit=None, force=False):
@@ -41,7 +43,7 @@ def run_logs_extraction(limit=None, force=False):
             break
 
         # Skip if already filled and not forcing
-        if row.get("flaky_failure_log", "").strip() and not force:
+        if row.get("failure_log", "").strip() and not force:
             continue
 
         test_id = row.get("test_id", "")
@@ -73,7 +75,7 @@ def run_logs_extraction(limit=None, force=False):
         # Format exactly like CAFlake: "Failed Rounds: 1/1\n[stacktrace]"
         formatted_log = f"Failed Rounds: 1/1\n{failure_log}"
 
-        row["flaky_failure_log"] = formatted_log
+        row["failure_log"] = formatted_log
         processed += 1
 
         if processed % 100 == 0:

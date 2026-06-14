@@ -15,14 +15,16 @@ from utils import read_common_dataset, write_common_dataset, parse_trigger_file
 METADATA_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json",
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json",
 ]
 
 def load_active_bugs(project_path):
@@ -109,14 +111,16 @@ def run_metadata_extraction(limit=None, force=False):
                 row = {
                     "id":                       global_id,
                     "test_id":                  test_id,
-                    "flaky_category":           "Non-Flaky",
+                    "isFlaky":                  0,
+                    "issue_category":           "Non-Flaky",
                     "repo_url":                 repo_url,
+                    "issue_commit":             bug["buggy_commit"],
                     "flaky_commit":             bug["buggy_commit"],
                     "fixed_commit":             bug["fixed_commit"],
-                    "flaky_test_code":          "",
-                    "flaky_helper_methods_json": "",
-                    "flaky_failure_log":         "",
-                    "flaky_code_under_test_json": "",
+                    "test_code":                "",
+                    "helper_methods_json":      "",
+                    "failure_log":              "",
+                    "code_under_test_json":     "",
                 }
 
                 updated_rows.append(row)

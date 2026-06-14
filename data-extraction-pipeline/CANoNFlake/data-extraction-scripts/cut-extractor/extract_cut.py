@@ -16,18 +16,20 @@ from utils import (
     resolve_test_class_method,
 )
 
-# Shared 10-column dataset schema
+# Shared 12-column dataset schema
 CUT_HEADERS = [
     "id",
     "test_id",
-    "flaky_category",
+    "isFlaky",
+    "issue_category",
     "repo_url",
+    "issue_commit",
     "flaky_commit",
     "fixed_commit",
-    "flaky_test_code",
-    "flaky_helper_methods_json",
-    "flaky_failure_log",
-    "flaky_code_under_test_json",
+    "test_code",
+    "helper_methods_json",
+    "failure_log",
+    "code_under_test_json",
 ]
 
 # Bare repo directory mapping (same as Stage 2)
@@ -646,7 +648,7 @@ def process_single_row(row):
     target_methods = set()
 
     # Phase 1: Try Failure Stack Trace Parsing
-    failure_log = row.get("flaky_failure_log", "")
+    failure_log = row.get("failure_log", "")
     # Strip the "Failed Rounds: N/M\n" prefix for parsing
     if failure_log.startswith("Failed Rounds:"):
         parts = failure_log.split("\n", 1)
@@ -657,9 +659,9 @@ def process_single_row(row):
     targets_stack = collect_stack_trace_methods(failure_log_parsed, test_class)
     target_methods.update(targets_stack)
 
-    # Phase 2: Try Static Invocations (from flaky_test_code and flaky_helper_methods_json)
-    test_code = row.get("flaky_test_code", "")
-    helpers_json = row.get("flaky_helper_methods_json", "")
+    # Phase 2: Try Static Invocations (from test_code and helper_methods_json)
+    test_code = row.get("test_code", "")
+    helpers_json = row.get("helper_methods_json", "")
     targets_static = collect_static_call_methods(
         test_code, helpers_json, repo_path, buggy_commit,
         test_class, test_src_dir, src_dir
@@ -771,7 +773,7 @@ def process_single_row(row):
                     cut_dict[fqn] = meth_bodies
                     break
 
-    row["flaky_code_under_test_json"] = json.dumps(cut_dict, ensure_ascii=False) if cut_dict else ""
+    row["code_under_test_json"] = json.dumps(cut_dict, ensure_ascii=False) if cut_dict else ""
 
 # ─────────────────────────────────────────────────────────
 #  Main runner
@@ -790,7 +792,7 @@ def run_cut_extraction(limit=None, force=False):
             break
 
         # Skip if already filled and not forcing
-        has_cut = row.get("flaky_code_under_test_json", "").strip()
+        has_cut = row.get("code_under_test_json", "").strip()
         if has_cut and has_cut != "{}" and not force:
             continue
 

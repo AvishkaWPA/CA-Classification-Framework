@@ -13,7 +13,7 @@ RESULT_DIR = os.path.join(WORKSPACE_ROOT, "result")
 TEST_CONFIG_PATH = os.path.join(WORKSPACE_ROOT, "test_config.csv")
 
 # Path to the output common dataset CSV
-COMMON_CSV_PATH = os.path.join(WORKSPACE_ROOT, "CAFlake", "context_enriched_dataset.csv")
+COMMON_CSV_PATH = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "context_enriched_dataset.csv"))
 
 # Paths to reproduction mapping tables
 JIRA_INFO_PATH = os.path.join(WORKSPACE_ROOT, "research-data", "Reproducible_JIRA_info.csv")
