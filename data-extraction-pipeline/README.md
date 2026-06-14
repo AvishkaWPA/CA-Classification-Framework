@@ -30,7 +30,7 @@ This section details how the pipelines statically and dynamically extract contex
 
 ```mermaid
 graph TD
-    subgraph CAFlake (Flaky Dataset)
+    subgraph CAFlake ["CAFlake (Flaky Dataset)"]
         D1[test_config.csv] --> C1[1. Metadata Extraction]
         C1 --> C2[2. Test Code Extraction]
         C2 --> C3[3. Failure Log Extraction]
@@ -40,7 +40,7 @@ graph TD
         coverage1[coverage_results.csv] --> C4
     end
 
-    subgraph CANonFlake (Non-Flaky Dataset)
+    subgraph CANonFlake ["CANonFlake (Non-Flaky Dataset)"]
         D2[active-bugs.csv / trigger_tests] --> N1[1. Metadata Extraction]
         N1 --> N2[2. Test Code Extraction]
         N2 --> N3[3. Failure Log Extraction]
