@@ -22,7 +22,6 @@ METADATA_HEADERS = [
     "issue_category",
     "repo_url",
     "issue_commit",
-    "flaky_commit",
     "fixed_commit"
 ]
 
@@ -79,7 +78,6 @@ def run_metadata_extraction(limit=None):
             "issue_category": full_category,
             "repo_url": meta["repo_url"],
             "issue_commit": meta["flaky_commit"],
-            "flaky_commit": meta["flaky_commit"],
             "fixed_commit": meta["fixed_commit"]
         })
         

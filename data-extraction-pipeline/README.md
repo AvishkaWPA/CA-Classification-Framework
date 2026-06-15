@@ -54,7 +54,7 @@ graph TD
 
 ### Stage 1: Metadata Extraction
 *   **CAFlake:** Parses `test_config.csv` and cross-references JIRA/iDoFT info tables (`Reproducible_JIRA_info.csv`, `Reproducible_iDoFT_info.csv`) to map git commit SHAs, project URLs, and execution metrics (passes, failures, errors).
-*   **CANonFlake:** Parses Defects4J's `active-bugs.csv` and `trigger_tests` directory files. It extracts the buggy commit SHA (`flaky_commit`) and fixed commit SHA (`fixed_commit`), mapping the repository URL from a static config table.
+*   **CANonFlake:** Parses Defects4J's `active-bugs.csv` and `trigger_tests` directory files. It extracts the buggy commit SHA (`issue_commit`) and fixed commit SHA (`fixed_commit`), mapping the repository URL from a static config table.
 
 ### Stage 2: Test & Helper Code Extraction
 *   **CAFlake:** Locates target test files inside project source ZIPs under `data/`. It parses test method bodies using a comment-stripped Java/Groovy brace-counting parser. It recursively walks up the inheritance hierarchy (`extends ...`) to find helper methods invoked inside the test method body and writes them to `flaky_helper_methods_json`.
@@ -66,7 +66,7 @@ graph TD
 
 ### Stage 4: Code Under Test (CUT) Extraction
 *   **CAFlake:** Reads Jacoco dynamic coverage results (`coverage_results.csv`), maps covered classes to ZIP main sources (resolving inner classes and constructors), and extracts the production method source code bodies coverage-tested by the test.
-*   **CANonFlake:** Resolves the production classes and methods using a multi-phase parser: (1) parsing the stack trace frames in the failure log, (2) statically analyzing calls/constructors inside the test and helper code, (3) recursively looking up test class imports, or (4) matching files by name within the package. Target methods are checked out from the `flaky_commit` (buggy SHA) in the project's bare Git repo and parsed recursively.
+*   **CANonFlake:** Resolves the production classes and methods using a multi-phase parser: (1) parsing the stack trace frames in the failure log, (2) statically analyzing calls/constructors inside the test and helper code, (3) recursively looking up test class imports, or (4) matching files by name within the package. Target methods are checked out from the `issue_commit` (buggy SHA) in the project's bare Git repo and parsed recursively.
 
 ---
 

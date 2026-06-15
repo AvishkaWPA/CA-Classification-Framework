@@ -26,7 +26,6 @@ CODE_HEADERS = [
     "issue_category",
     "repo_url",
     "issue_commit",
-    "flaky_commit",
     "fixed_commit",
     "test_code",
     "helper_methods_json",
@@ -473,7 +472,7 @@ def run_code_extraction(limit=None, force=False):
 
         test_id = row.get("test_id", "")
         project = extract_project_from_test_id(test_id)
-        buggy_commit  = row.get("flaky_commit", "").strip()   # production code buggy state
+        buggy_commit  = row.get("issue_commit", "").strip()   # production code buggy state
         fixed_commit  = row.get("fixed_commit", "").strip()   # test method lives HERE
 
         # Get bare repo

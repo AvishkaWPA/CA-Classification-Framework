@@ -125,7 +125,7 @@ def export_to_csv(records: list, output_csv_path: str):
     """
     headers = [
         "id", "test_id", "isFlaky", "issue_category", "repo_url",
-        "issue_commit", "flaky_commit", "fixed_commit",
+        "issue_commit", "fixed_commit",
         "test_code", "helper_methods_json", "failure_log", "code_under_test_json"
     ]
     with open(output_csv_path, "w", newline="", encoding="utf-8") as f:

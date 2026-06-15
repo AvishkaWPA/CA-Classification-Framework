@@ -24,7 +24,6 @@ CUT_HEADERS = [
     "issue_category",
     "repo_url",
     "issue_commit",
-    "flaky_commit",
     "fixed_commit",
     "test_code",
     "helper_methods_json",
@@ -638,7 +637,7 @@ def collect_static_call_methods(flaky_test_code, flaky_helpers_json, repo_path, 
 def process_single_row(row):
     test_id = row.get("test_id", "")
     project = test_id.split("-")[0]
-    buggy_commit = row.get("flaky_commit", "").strip()
+    buggy_commit = row.get("issue_commit", "").strip()
 
     repo_path = get_repo_path(project)
     if not repo_path:

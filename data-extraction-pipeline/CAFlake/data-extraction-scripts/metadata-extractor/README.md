@@ -33,6 +33,6 @@ fastjson97ee7b6test_for_issue5,fastjson=97ee7b6,id
 
 ### 3. Extracted Metadata Output (`context_enriched_dataset.csv`):
 ```csv
-id,test_id,flaky_category,repo_url,flaky_commit,fixed_commit
-1,fastjson97ee7b6test_for_issue5,Implementation Dependent,https://github.com/alibaba/fastjson,97ee7b63bfd1563d5071fa5a7a55806bb1c3cb85,0f4379b58cc54e8e4429770f32f8e1c86202a028
+id,test_id,isFlaky,issue_category,repo_url,issue_commit,fixed_commit
+1,fastjson97ee7b6test_for_issue5,1,Implementation Dependent,https://github.com/alibaba/fastjson,97ee7b63bfd1563d5071fa5a7a55806bb1c3cb85,0f4379b58cc54e8e4429770f32f8e1c86202a028
 ```

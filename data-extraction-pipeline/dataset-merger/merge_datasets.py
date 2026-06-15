@@ -70,7 +70,6 @@ def main():
         "issue_category",
         "repo_url",
         "issue_commit",
-        "flaky_commit",
         "fixed_commit",
         "test_code",
         "helper_methods_json",

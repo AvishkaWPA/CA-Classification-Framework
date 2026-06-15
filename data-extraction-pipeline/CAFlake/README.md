@@ -25,7 +25,6 @@ The final `context_enriched_dataset.csv` uses the exact same column schema as `C
 | `issue_category` | str | Stage 1 | Category of flakiness: `Implementation Dependent`, `Order Dependent`, `Non-Idempotent`, `Time Dependent` |
 | `repo_url` | str | Stage 1 | GitHub URL of the project |
 | `issue_commit` | str | Stage 1 | Git SHA of the **buggy** (flaky) commit |
-| `flaky_commit` | str | Stage 1 | Duplicate/alias of `issue_commit` |
 | `fixed_commit` | str | Stage 1 | Git SHA of the **fixed** commit |
 | `test_code` | str | Stage 2 | Full source of the failing test method |
 | `helper_methods_json` | JSON str | Stage 2 | JSON map of helper methods called by the test |
@@ -42,7 +41,7 @@ The dataset is built in **4 sequential stages**. Each stage reads `context_enric
 ReproFlake
 dataSource/reproFlake/
 ├── test_config.csv          ─── Stage 1 ──▶ id, test_id, isFlaky, issue_category,
-├── research-data/           ─── Stage 1 ──▶ repo_url, issue_commit, flaky_commit, fixed_commit
+├── research-data/           ─── Stage 1 ──▶ repo_url, issue_commit, fixed_commit
 ├── result/[test_id]/        ─── Stage 3 ──▶ failure_log
 │   └── surefire-reports/
 └── data/[project].zip       ─── Stage 2 ──▶ test_code, helper_methods_json

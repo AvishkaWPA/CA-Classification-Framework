@@ -25,14 +25,13 @@ The final `non_flaky_dataset.csv` uses the **exact same column schema** as `CAFl
 | `issue_category` | str | Stage 1 | Always `"Non-Flaky"` |
 | `repo_url` | str | Stage 1 | GitHub URL of the project |
 | `issue_commit` | str | Stage 1 | Git SHA of the **buggy** commit |
-| `flaky_commit` | str | Stage 1 | Duplicate/alias of `issue_commit` |
 | `fixed_commit` | str | Stage 1 | Git SHA of the **fixed** commit |
 | `test_code` | str | Stage 2 | Full source of the failing test method |
 | `helper_methods_json` | JSON str | Stage 2 | JSON map of helper methods called by the test |
 | `failure_log` | str | Stage 3 | Stack trace / failure output from the test run |
 | `code_under_test_json` | JSON str | Stage 4 | JSON map of production methods exercised by the test |
 
-> **Note on naming:** Column names match CAFlake's schema (e.g., duplicate `issue_commit` / `flaky_commit` is used to support both naming styles). The `isFlaky = 0` and `issue_category = "Non-Flaky"` distinguish the two classes.
+> **Note on naming:** Column names match the shared schema. The `isFlaky = 0` and `issue_category = "Non-Flaky"` distinguish the two classes.
 
 ---
 
@@ -44,7 +43,7 @@ The dataset is built in **4 sequential stages**. Each stage reads `non_flaky_dat
 Defects4J
 framework/projects/[Project]/
 ├── active-bugs.csv          ─── Stage 1 ──▶ id, test_id, isFlaky, issue_category,
-├── trigger_tests/[N]        ─── Stage 1 ──▶ repo_url, issue_commit, flaky_commit, fixed_commit
+├── trigger_tests/[N]        ─── Stage 1 ──▶ repo_url, issue_commit, fixed_commit
 │                            ─── Stage 3 ──▶ failure_log
 └── project_repos/[name].git ─── Stage 2 ──▶ test_code, helper_methods_json
                              ─── Stage 4 ──▶ code_under_test_json
@@ -66,7 +65,7 @@ python data-extraction-scripts/metadata-extractor/extract_metadata.py --limit 20
 python data-extraction-scripts/metadata-extractor/extract_metadata.py --force
 ```
 
-**Output:** 1,779 rows with `id`, `test_id`, `isFlaky`, `issue_category`, `repo_url`, `issue_commit`, `flaky_commit`, `fixed_commit` filled.
+**Output:** 1,779 rows with `id`, `test_id`, `isFlaky`, `issue_category`, `repo_url`, `issue_commit`, `fixed_commit` filled.
 
 ---
 
@@ -76,7 +75,7 @@ python data-extraction-scripts/metadata-extractor/extract_metadata.py --force
 
 **Requires:** Project Git repositories cloned into `project_repos/`
 
-For each row, checks out the `flaky_commit` (buggy SHA) in the project's bare Git repo, locates the test class `.java` file using `dir-layout.csv`, and extracts the test method body and helper methods using brace-counting parser (reused from CAFlake).
+For each row, checks out the `issue_commit` (buggy SHA) in the project's bare Git repo, locates the test class `.java` file using `dir-layout.csv`, and extracts the test method body and helper methods using brace-counting parser (reused from CAFlake).
 
 ```powershell
 python data-extraction-scripts/code-extractor/extract_codes.py

@@ -12,7 +12,7 @@ The script executes three sequential lookup phases to identify candidate product
 4. **Name-Based Package Fallback:** Matches package contents for classes whose names match the test class prefix (e.g., test class `org.apache.commons.FooTest` will fall back to production class `org.apache.commons.Foo` and collect its public methods).
 
 ### Code Extraction and Optimization
-Once target methods are mapped, they are checked out from the **buggy commit** (`flaky_commit`) in the project's bare Git repo:
+Once target methods are mapped, they are checked out from the **buggy commit** (`issue_commit`) in the project's bare Git repo:
 *   **Inheritance walking:** If a method is not found in the target class, the script walks up the class hierarchy (`extends ...`) to search for and extract inherited methods.
 *   **Performance Optimization (Path-Based FQN):** Instead of executing expensive `git show` subprocess commands for package identification, the class resolver derives FQN mappings directly from directory layout structures (e.g. mapping `src/main/java`), resulting in a 1,000x execution speedup (~0.3s/row).
 *   **JSON Output:** The extracted method bodies are stored in a nested JSON map in `flaky_code_under_test_json` with format: `{ "class_fqn": { "method_name": "method_body_string" } }`.
