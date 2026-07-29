@@ -1,0 +1,19 @@
+## Flaky Test Categories
+
+If the test is classified as Flaky, select exactly one issue category from the following list.
+
+1. Implementation Dependent
+   - The test outcome depends on implementation-specific behavior rather than the intended specification.
+
+2. Order Dependent
+   - The test outcome depends on the execution order of tests because of shared state or side effects.
+
+3. Non-Idempotent
+   - Repeated execution changes the outcome because the test or system under test modifies state that is not reset.
+
+4. Time Dependent
+   - The test outcome depends on timing, scheduling, delays, clocks, or asynchronous execution.
+
+If the test is classified as Non-Flaky, return:
+
+Non-Flaky

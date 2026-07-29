@@ -1,0 +1,9 @@
+Your task is to analyze the provided software testing artifacts.
+
+Determine whether the test is Flaky or Non-Flaky.
+
+If the test is Flaky, select exactly one issue category from the provided category list.
+
+Justify the classification using only the provided evidence.
+
+Identify the artifacts that support your conclusion.

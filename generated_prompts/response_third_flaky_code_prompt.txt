@@ -1,0 +1,8 @@
+{
+"classification": "Flaky",
+"category": "Time Dependent",
+"reasoning": "The test relies on fixed sleep intervals (Thread.sleep(100)) and busy-wait polling on semaphore permits to coordinate synchronization between concurrently executing threads. The correctness of the test's assertions depends on threads completing their sleep/wait cycles within expected time windows relative to each other, making the outcome sensitive to scheduling delays, system load, or JVM thread scheduling variance rather than deterministic control flow.",
+"evidence": [
+"Test Code"
+]
+}

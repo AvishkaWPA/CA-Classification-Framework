@@ -1,0 +1,94 @@
+#Example 1
+
+## Input
+
+### 1. Test Code
+
+@Test
+    public void testReentrantSingleLock() throws Exception {
+        final int THREAD_QTY = 10;
+
+        CuratorFramework client =
+                CuratorFrameworkFactory.newClient(server.getConnectString(), new ExponentialBackoffRetry(100, 3));
+        client.start();
+        try {
+            final AtomicBoolean hasLock = new AtomicBoolean(false);
+            final AtomicBoolean isFirst = new AtomicBoolean(true);
+            final Semaphore semaphore = new Semaphore(1);
+            final InterProcessLock mutex = makeLock(client);
+
+            List<Future<Object>> threads = Lists.newArrayList();
+            ExecutorService service = Executors.newCachedThreadPool();
+            for (int i = 0; i < THREAD_QTY; ++i) {
+                Future<Object> t = service.submit(new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        semaphore.acquire();
+                        mutex.acquire();
+                        try {
+                            assertTrue(hasLock.compareAndSet(false, true));
+                            if (isFirst.compareAndSet(true, false)) {
+                                semaphore.release(THREAD_QTY - 1);
+                                while (semaphore.availablePermits() > 0) {
+                                    Thread.sleep(100);
+                                }
+                            } else {
+                                Thread.sleep(100);
+                            }
+                        } finally {
+                            mutex.release();
+                            hasLock.set(false);
+                        }
+                        return null;
+                    }
+                });
+                threads.add(t);
+            }
+
+            for (Future<Object> t : threads) {
+                t.get();
+            }
+        } finally {
+            CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    
+## Output
+
+{
+    "classification": "Flaky",
+    "category": "Time Dependent",
+    "reasoning": "The test relies on Thread.sleep(100) calls and busy-wait polling (while (semaphore.availablePermits() > 0) { Thread.sleep(100); }) to coordinate thread timing and ensure mutual exclusion behavior is observed correctly across concurrent threads. The correctness of the assertTrue(hasLock.compareAndSet(false, true)) assumption depends on threads acquiring and releasing the mutex within these fixed sleep windows. Under system load, thread scheduling delays, or slow CI environments, these timing assumptions can be violated, causing threads to overlap unexpectedly or the semaphore polling loop to behave inconsistently, leading to non-deterministic test outcomes.",
+    "evidence": ["Test Code"]
+}
+
+
+#Example 2
+
+## Input
+
+### 1. Test Code
+
+public void testSingleMatchFilteringWithPath() throws Exception
+    {
+        String jsonString = aposToQuotes("{'a':123,'array':[1,2],'ob':{'value0':2,'value':3,'value2':4},'b':true}");
+        JsonParser p0 = JSON_F.createParser(jsonString);
+        FilteringParserDelegate p = new FilteringParserDelegate(p0,
+                new NameMatchFilter("a"),
+                true,
+                false
+        );
+        String result = readAndWrite(JSON_F, p);
+        assertEquals(aposToQuotes("{'a':123}"), result);
+        assertEquals(1, p.getMatchCount());
+    }
+
+## Output
+
+{
+    "classification": "Non-Flaky",
+    "category": "Non-Flaky",
+    "reasoning": "The test parses a fixed JSON string using a deterministic parser and filter configuration, with no dependency on timing, threading, execution order, or shared mutable state across tests. All inputs are local, and the assertions compare deterministic outputs (filtered JSON string and match count) against expected fixed values. There is no evidence in the provided artifact of any non-deterministic behavior, concurrency, or reliance on external/implementation-specific state.",
+    "evidence": ["Test Code"]
+}

@@ -1,0 +1,207 @@
+You are an expert software testing assistant specializing in flaky test identification and classification.
+
+Base every decision solely on the provided artifacts.
+
+Do not rely on external knowledge or assumptions.
+
+If the available evidence is insufficient to confidently identify a flaky test, classify it as Non-Flaky.
+
+Your task is to analyze the provided software testing artifacts.
+
+Determine whether the test is Flaky or Non-Flaky.
+
+If the test is Flaky, select exactly one issue category from the provided category list.
+
+Justify the classification using only the provided evidence.
+
+Identify the artifacts that support your conclusion.
+
+## Flaky Test Categories
+
+If the test is classified as Flaky, select exactly one issue category from the following list.
+
+1. Implementation Dependent
+   - The test outcome depends on implementation-specific behavior rather than the intended specification.
+
+2. Order Dependent
+   - The test outcome depends on the execution order of tests because of shared state or side effects.
+
+3. Non-Idempotent
+   - Repeated execution changes the outcome because the test or system under test modifies state that is not reset.
+
+4. Time Dependent
+   - The test outcome depends on timing, scheduling, delays, clocks, or asynchronous execution.
+
+If the test is classified as Non-Flaky, return:
+
+Non-Flaky
+
+Analyze the following test artifacts.
+
+Produce the final classification based only on the provided artifacts.
+
+## Input
+
+### 1. Test Code
+
+public void testSingleMatchFilteringWithPath() throws Exception
+    {
+        String jsonString = aposToQuotes("{'a':123,'array':[1,2],'ob':{'value0':2,'value':3,'value2':4},'b':true}");
+        JsonParser p0 = JSON_F.createParser(jsonString);
+        FilteringParserDelegate p = new FilteringParserDelegate(p0,
+                new NameMatchFilter("a"),
+                true,
+                false
+        );
+        String result = readAndWrite(JSON_F, p);
+        assertEquals(aposToQuotes("{'a':123}"), result);
+        assertEquals(1, p.getMatchCount());
+    }
+
+### 2. Helper Methods
+
+Method: NameMatchFilter
+
+public NameMatchFilter(String... names) {
+            _names = new HashSet<String>(Arrays.asList(names));
+        }
+
+----------------------------------------
+
+Method: aposToQuotes
+
+protected String aposToQuotes(String json) {
+        return json.replace("'", "\"");
+    }
+
+----------------------------------------
+
+Method: createParser
+
+protected JsonParser createParser(int mode, String doc) throws IOException {
+        return createParser(JSON_FACTORY, mode, doc);
+    }
+
+----------------------------------------
+
+Method: readAndWrite
+
+protected String readAndWrite(JsonFactory f, JsonParser p) throws IOException
+    {
+        StringWriter sw = new StringWriter(100);
+        JsonGenerator g = f.createGenerator(sw);
+        g.disable(JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT);
+        try {
+            while (p.nextToken() != null) {
+                g.copyCurrentEvent(p);
+            }
+        } catch (IOException e) {
+            g.flush();
+            fail("Unexpected problem during `readAndWrite`. Output so far: '"+sw+"'; problem: "+e);
+        }
+        p.close();
+        g.close();
+        return sw.toString();
+    }
+
+----------------------------------------
+
+### 3. Failure Log
+
+junit.framework.AssertionFailedError: expected:<1> but was:<0>
+	at junit.framework.Assert.fail(Assert.java:57)
+	at junit.framework.Assert.failNotEquals(Assert.java:329)
+	at junit.framework.Assert.assertEquals(Assert.java:78)
+	at junit.framework.Assert.assertEquals(Assert.java:234)
+	at junit.framework.Assert.assertEquals(Assert.java:241)
+	at junit.framework.TestCase.assertEquals(TestCase.java:409)
+	at com.fasterxml.jackson.core.filter.BasicParserFilteringTest.testSingleMatchFilteringWithPath(BasicParserFilteringTest.java:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at junit.framework.TestCase.runTest(TestCase.java:176)
+	at junit.framework.TestCase.runBare(TestCase.java:141)
+	at junit.framework.TestResult$1.protect(TestResult.java:122)
+	at junit.framework.TestResult.runProtected(TestResult.java:142)
+	at junit.framework.TestResult.run(TestResult.java:125)
+	at junit.framework.TestCase.run(TestCase.java:129)
+	at junit.framework.TestSuite.runTest(TestSuite.java:255)
+	at junit.framework.TestSuite.run(TestSuite.java:250)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.run(JUnitTestRunner.java:520)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTask.executeInVM(JUnitTask.java:1484)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTask.execute(JUnitTask.java:872)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTask.executeOrQueue(JUnitTask.java:1972)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTask.execute1(JUnitTask.java:824)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTask.execute(JUnitTask.java:2277)
+	at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+	at sun.reflect.GeneratedMethodAccessor4.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+	at org.apache.tools.ant.Task.perform(Task.java:348)
+	at org.apache.tools.ant.Target.execute(Target.java:392)
+	at org.apache.tools.ant.Target.performTasks(Target.java:413)
+	at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+	at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+	at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+	at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+	at org.apache.tools.ant.Main.runBuild(Main.java:811)
+	at org.apache.tools.ant.Main.startAnt(Main.java:217)
+	at org.apache.tools.ant.launch.Launcher.run(Launcher.java:280)
+	at org.apache.tools.ant.launch.Launcher.main(Launcher.java:109)
+
+### 4. Production Code
+
+Class: JsonFactory
+
+Method: <init>
+
+public JsonFactory() { this(null); }
+
+----------------------------------------
+
+Class: JsonGenerator
+
+Method: <init>
+
+protected JsonGenerator() { }
+
+----------------------------------------
+
+Class: JsonParser
+
+Method: <init>
+
+protected JsonParser() { }
+
+----------------------------------------
+
+Class: com.fasterxml.jackson.core.filter.FilteringParserDelegate
+
+Method: <init>
+
+public FilteringParserDelegate(JsonParser p, TokenFilter f,
+            boolean includePath, boolean allowMultipleMatches)
+    {
+        super(p);
+        rootFilter = f;
+
+        _itemFilter = f;
+        _headContext = TokenFilterContext.createRootContext(f);
+        _includePath = includePath;
+        _allowMultipleMatches = allowMultipleMatches;
+    }
+
+----------------------------------------
+
+Return only the following JSON object without any additional explanation or markdown.
+
+{
+    "classification": "<Flaky | Non-Flaky>",
+    "category": "<One category from the provided category list or Non-Flaky>",
+    "reasoning": "...",
+    "evidence": [
+        < List of artifacts helps to conclusion. Example: "Test Code", "Helper Methods", "Failure Log", "Production Code" > 
+    ]
+}

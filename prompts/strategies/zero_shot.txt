@@ -1,0 +1,4 @@
+Analyze the following test artifacts.
+
+Produce the final classification based only on the provided artifacts.
+

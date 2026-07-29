@@ -1,0 +1,9 @@
+Study the worked examples below.
+
+Each example illustrates how to:
+- identify the relevant evidence,
+- evaluate possible sources of flakiness,
+- eliminate unsupported explanations,
+- determine the final classification.
+
+Apply the same reasoning process demonstrated in the examples to the new test case.

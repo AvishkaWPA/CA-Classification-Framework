@@ -1,0 +1,10 @@
+Return only the following JSON object without any additional explanation or markdown.
+
+{
+    "classification": "<Flaky | Non-Flaky>",
+    "category": "<One category from the provided category list or Non-Flaky>",
+    "reasoning": "...",
+    "evidence": [
+        < List of artifacts helps to conclusion. Example: "Test Code", "Helper Methods", "Failure Log", "Production Code" > 
+    ]
+}
